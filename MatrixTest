@@ -1,0 +1,151 @@
+/*************************************************** 
+  This is a library for our I2C LED Backpacks
+
+  Designed specifically to work with the Adafruit 16x8 LED Matrix backpacks 
+  ----> http://www.adafruit.com/products/2035
+  ----> http://www.adafruit.com/products/2036
+  ----> http://www.adafruit.com/products/2037
+  ----> http://www.adafruit.com/products/2038
+  ----> http://www.adafruit.com/products/2039
+  ----> http://www.adafruit.com/products/2040
+  ----> http://www.adafruit.com/products/2041
+  ----> http://www.adafruit.com/products/2042
+  ----> http://www.adafruit.com/products/2043
+  ----> http://www.adafruit.com/products/2044
+  ----> http://www.adafruit.com/products/2052
+
+  These displays use I2C to communicate, 2 pins are required to 
+  interface. There are multiple selectable I2C addresses. For backpacks
+  with 2 Address Select pins: 0x70, 0x71, 0x72 or 0x73. For backpacks
+  with 3 Address Select pins: 0x70 thru 0x77
+
+  Adafruit invests time and resources providing this open source code, 
+  please support Adafruit and open-source hardware by purchasing 
+  products from Adafruit!
+
+  Written by Limor Fried/Ladyada for Adafruit Industries.  
+  BSD license, all text above must be included in any redistribution
+  
+  Yun is at 10.10.10.20 and password is arduino
+ ****************************************************/
+
+#include <Wire.h>
+#include "Adafruit_LEDBackpack.h"
+#include "Adafruit_GFX.h"
+
+Adafruit_8x16matrix firstmatrix = Adafruit_8x16matrix();
+Adafruit_8x16matrix secondmatrix = Adafruit_8x16matrix();
+Adafruit_8x16matrix thirdmatrix = Adafruit_8x16matrix();
+Adafruit_8x16matrix fourthmatrix = Adafruit_8x16matrix();
+Adafruit_8x16matrix fifthmatrix = Adafruit_8x16matrix();
+
+int speedPin = 1;  //Pots to read for spead of scrolling
+int scrollspeed; //set inital speed
+int brightPin = 2; //pot to read for brightness
+int brightness = 20;//set inital brightness
+
+int xposition = 17;
+
+long previousMillisTickerScroll = 0;        // for updating the ticker
+
+String lastmsg  = "";
+String msg1 = "";
+
+int msgStringLength = msg1.length();
+
+void setup() {
+   //set the addresses of the matrizes
+   firstmatrix.begin(0x73);  
+   secondmatrix.begin(0x74);  
+   thirdmatrix.begin(0x72);  
+   fourthmatrix.begin(0x71);
+   fifthmatrix.begin(0x70); 
+   Wire.begin();
+ 
+   firstmatrix.setTextSize (1);
+   firstmatrix.setTextWrap(false);  // we dont want text to wrap so it scrolls nicely
+   firstmatrix.setTextColor(LED_ON);
+   firstmatrix.setRotation(1);
+   
+   secondmatrix.setTextSize(1);
+   secondmatrix.setTextWrap(false);  // we dont want text to wrap so it scrolls nicely
+   secondmatrix.setTextColor(LED_ON);
+   secondmatrix.setRotation(1);
+   
+   thirdmatrix.setTextSize(1);
+   thirdmatrix.setTextWrap(false);  // we dont want text to wrap so it scrolls nicely
+   thirdmatrix.setTextColor(LED_ON);
+   thirdmatrix.setRotation(1);
+   
+   fourthmatrix.setTextSize(0);
+   fourthmatrix.setTextWrap(false);  // we dont want text to wrap so it scrolls nicely
+   fourthmatrix.setTextColor(LED_ON);
+   fourthmatrix.setRotation(1);
+   
+   fifthmatrix.setTextSize(0);
+   fifthmatrix.setTextWrap(false);  // we dont want text to wrap so it scrolls nicely
+   fifthmatrix.setTextColor(LED_ON);
+   fifthmatrix.setRotation(1);
+   
+    
+    msg1 = "Hello world, how are you doing today? ";
+
+}
+
+
+
+void loop() {
+
+    scrollspeed = (analogRead(speedPin)/16)*8;    // read the value from the sensor
+    unsigned long currentMillis = millis();
+   
+    if(currentMillis - previousMillisTickerScroll > scrollspeed) {
+      previousMillisTickerScroll = currentMillis;   
+      updateTicker();  
+      }
+  }
+
+void updateTicker(){
+
+      msgStringLength = msg1.length();
+      xposition = xposition-1;
+      if (xposition <= -(64+(6*msgStringLength)))
+         {
+           xposition =17; //start over
+         }
+
+      firstmatrix.clear();
+      firstmatrix.setCursor(xposition+64,1);
+      firstmatrix.print(msg1);
+      firstmatrix.writeDisplay();
+      
+      secondmatrix.clear();
+      secondmatrix.setCursor(xposition+48,1);
+      secondmatrix.print(msg1);
+      secondmatrix.writeDisplay();
+  
+      thirdmatrix.clear();
+      thirdmatrix.setCursor(xposition+32,1);
+      thirdmatrix.print(msg1);
+      thirdmatrix.writeDisplay();
+      
+      fourthmatrix.clear();
+      fourthmatrix.setCursor(xposition+16,1);
+      fourthmatrix.print(msg1);
+      fourthmatrix.writeDisplay();
+      
+      fifthmatrix.clear();
+      fifthmatrix.setCursor(xposition,1);
+      fifthmatrix.print(msg1);
+      fifthmatrix.writeDisplay();
+    
+      brightness = (analogRead(brightPin)/64); 
+  
+      firstmatrix.setBrightness(brightness);
+      secondmatrix.setBrightness(brightness);
+      thirdmatrix.setBrightness(brightness);
+      fourthmatrix.setBrightness(brightness);
+      fifthmatrix.setBrightness(brightness);
+}
+
+
